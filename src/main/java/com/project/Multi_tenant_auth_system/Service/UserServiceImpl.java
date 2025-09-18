@@ -1,5 +1,6 @@
 package com.project.Multi_tenant_auth_system.Service;
 
+import com.project.Multi_tenant_auth_system.Entity.Role;
 import com.project.Multi_tenant_auth_system.Entity.User;
 import com.project.Multi_tenant_auth_system.Payload.UpdateUserRequest;
 import com.project.Multi_tenant_auth_system.Repository.RoleRepository;
@@ -7,15 +8,17 @@ import com.project.Multi_tenant_auth_system.Repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -65,12 +68,12 @@ public class UserServiceImpl implements UserService{
             return Optional.empty();
         }
         User user = userOptional.get();
-        if(isSuperAdmin(user))
+        if(isSuperAdmin(currentUser))
         {
             logger.info("Getting user for Super Admin");
             return Optional.of(user);
         }
-        else if(isAdmin(user) && user.getTenant().getId().equals(currentUser.getTenant().getId()))
+        else if(isAdmin(currentUser) && user.getTenant().getId().equals(currentUser.getTenant().getId()))
         {
             logger.info("Getting user for Admin of its Tenant");
             return Optional.of(user);
@@ -84,14 +87,40 @@ public class UserServiceImpl implements UserService{
         User userToBeUpdated = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("Username not found with id "+id));
 
+        if(!isSuperAdmin(currentUser) && !currentUser.getTenant().getId().equals(userToBeUpdated.getTenant().getId()))
+        {
+            throw new AccessDeniedException("You do not have permission to update this user.");
+        }
+        userToBeUpdated.setUsername(updateUserRequest.getUsername());
 
-
-        return null;
+        //to update the password
+        if(updateUserRequest.getPassword()!= null && !updateUserRequest.getPassword().isEmpty())
+        {
+            userToBeUpdated.setPassword(passwordEncoder.encode(updateUserRequest.getPassword()));
+        }
+        // to update the roles
+        if (updateUserRequest.getRoles() != null) {
+            Set<Role> newRoles = updateUserRequest.getRoles().stream()
+                    .map(roleName -> roleRepository.findByName(roleName)
+                            .orElseThrow(() -> new RuntimeException("Error: Role not found - " + roleName)))
+                    .collect(Collectors.toSet());
+            userToBeUpdated.setRoles(newRoles);
+        }
+        return userRepository.save(userToBeUpdated);
     }
 
 
     @Override
     public void deleteUserById(Long id) {
+        User currentUser = getCurrentUser();
+        User userToDelete = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+
+        if (!isSuperAdmin(currentUser) && !userToDelete.getTenant().getId().equals(currentUser.getTenant().getId())) {
+            throw new AccessDeniedException("You do not have permission to delete this user.");
+        }
+
+        userRepository.deleteById(id);
 
     }
 
