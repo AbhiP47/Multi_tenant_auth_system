@@ -55,7 +55,6 @@ public class TenantServiceImpl implements TenantService {
         if (!tenantRepository.existsById(id)) {
             throw new RuntimeException("Tenant not found with id: " + id);
         }
-        // In a real app, you might add logic to prevent deleting tenants with active users.
         tenantRepository.deleteById(id);
     }
 
