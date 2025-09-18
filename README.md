@@ -33,8 +33,20 @@ Primary Application Layers
 
 
 
+Core System Components :
+
+
+
+
+Primary Application Layers
+
+
+<img width="1022" height="584" alt="image" src="https://github.com/user-attachments/assets/70741734-86ef-4227-9266-745313205f4d" />
+
+
 Entity Relationship Model
 
+<img width="512" height="826" alt="image" src="https://github.com/user-attachments/assets/0ebaeba5-9597-4b0a-b768-a9872fe3cc35" />
 
 
 
