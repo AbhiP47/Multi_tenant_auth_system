@@ -1,7 +1,7 @@
 Purpose and Scope
 This document provides a comprehensive overview of the Multi-Tenant Authentication System, a Spring Boot application that implements JWT-based authentication and authorization across multiple tenant organizations. The system enables secure user management, role-based access control, and tenant isolation within a single application instance.
 
-This overview covers the system's core architecture, key components, and technology stack. For detailed security implementation, see Security & Authentication. For tenant-specific functionality, see Multi-Tenant Management. For user management operations, see User Management.
+
 
 System Overview
 The Multi-Tenant Authentication System is built as a RESTful Spring Boot application that provides authentication and user management services across multiple tenant organizations. The system implements tenant isolation at the data and service layers while maintaining a unified security framework.
